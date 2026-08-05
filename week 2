@@ -1,0 +1,230 @@
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+titanic = sns.load_dataset("titanic")
+plt.figure(figsize=(8,5))
+
+plt.hist(titanic["age"].dropna(), bins=20)
+
+plt.title("Distribution of Passenger Ages")
+plt.xlabel("Age")
+plt.ylabel("Number of Passengers")
+
+plt.show()
+pclass_counts = titanic["pclass"].value_counts().sort_index()
+
+plt.figure(figsize=(6,5))
+
+plt.bar(
+    pclass_counts.index,
+    pclass_counts.values
+)
+
+plt.title("Number of Passengers by Class")
+plt.xlabel("Passenger Class")
+plt.ylabel("Number of Passengers")
+
+plt.show()
+plt.figure(figsize=(8,5))
+
+plt.scatter(
+    titanic["age"],
+    titanic["fare"]
+)
+
+plt.title("Age vs Fare")
+plt.xlabel("Age")
+plt.ylabel("Fare")
+
+plt.show()
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+titanic = sns.load_dataset("titanic")
+corr_matrix = titanic.corr(numeric_only=True)
+
+print(corr_matrix)
+plt.figure(figsize=(8,6))
+
+sns.heatmap(
+    corr_matrix,
+    annot=True,
+    cmap="coolwarm",
+    linewidths=0.5
+)
+
+plt.title("Correlation Matrix of Titanic Dataset")
+
+plt.show()
+plt.figure(figsize=(8,5))
+
+sns.boxplot(
+    data=titanic,
+    x="pclass",
+    y="age"
+)
+
+plt.title("Age Distribution by Passenger Class")
+plt.xlabel("Passenger Class")
+plt.ylabel("Age")
+
+plt.show()
+plt.figure(figsize=(7,5))
+
+sns.countplot(
+    data=titanic,
+    x="survived",
+    hue="sex"
+)
+
+plt.title("Survival Count by Gender")
+plt.xlabel("Survived")
+plt.ylabel("Number of Passengers")
+
+plt.show()
+sns.pairplot(
+    titanic[
+        ["age", "fare", "pclass"]
+    ].dropna()
+)
+
+plt.show()
+sns.pairplot(
+    titanic[
+        ["age", "fare", "pclass", "survived"]
+    ].dropna(),
+    hue="survived"
+)
+
+plt.show()
+import seaborn as sns
+import plotly.express as px
+
+titanic = sns.load_dataset("titanic")
+pclass_counts = (
+    titanic["pclass"]
+    .value_counts()
+    .sort_index()
+    .reset_index()
+)
+
+pclass_counts.columns = ["pclass", "count"]
+fig = px.bar(
+    pclass_counts,
+    x="pclass",
+    y="count",
+    title="Number of Passengers by Class",
+    labels={
+        "pclass": "Passenger Class",
+        "count": "Number of Passengers"
+    }
+)
+
+fig.show()
+fig = px.scatter(
+    titanic,
+    x="age",
+    y="fare",
+    color="survived",
+    title="Age vs Fare",
+    labels={
+        "age": "Age",
+        "fare": "Fare",
+        "survived": "Survived"
+    }
+)
+
+fig.show()
+fig = px.histogram(
+    titanic,
+    x="age",
+    color="sex",
+    nbins=20,
+    title="Age Distribution by Gender",
+    labels={
+        "age": "Age",
+        "sex": "Gender"
+    }
+)
+
+fig.show()
+fig.write_html("chart.html")
+fig.write_html("chart.html", auto_open=True)
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+
+titanic = sns.load_dataset("titanic")
+
+plt.figure(figsize=(8,5))
+
+sns.boxplot(
+    data=titanic,
+    x="pclass",
+    y="fare"
+)
+
+plt.title("Fare Distribution by Passenger Class")
+plt.xlabel("Passenger Class")
+plt.ylabel("Fare")
+
+plt.show()
+survival = titanic["survived"].value_counts()
+
+plt.figure(figsize=(6,6))
+
+plt.pie(
+    survival,
+    labels=["Did Not Survive", "Survived"],
+    autopct="%1.1f%%",
+    startangle=90
+)
+
+plt.title("Survival Rate")
+
+plt.show()
+titanic["family_size"] = (
+    titanic["sibsp"] +
+    titanic["parch"]
+)
+family_survival = (
+    titanic
+    .groupby("family_size")["survived"]
+    .mean()
+    .reset_index()
+)
+
+plt.figure(figsize=(8,5))
+
+sns.barplot(
+    data=family_survival,
+    x="family_size",
+    y="survived"
+)
+
+plt.title("Survival Rate by Family Size")
+plt.xlabel("Family Size")
+plt.ylabel("Average Survival Rate")
+
+plt.show()
+embarked_fare = (
+    titanic
+    .groupby("embarked")["fare"]
+    .mean()
+    .reset_index()
+)
+
+plt.figure(figsize=(7,5))
+
+sns.barplot(
+    data=embarked_fare,
+    x="embarked",
+    y="fare"
+)
+
+plt.title("Average Fare by Embarkation Port")
+plt.xlabel("Embarked")
+plt.ylabel("Average Fare")
+
+plt.show()
