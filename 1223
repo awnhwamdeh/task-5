@@ -1,0 +1,16 @@
+
+import numpy as np
+
+np.random.seed(21)
+n_purchases = 400
+dates = pd.date_range('2023-01-01', '2024-12-31', freq='D')
+
+courses = ['Python Basics', 'Data Analysis', 'SQL Mastery', 'Excel Pro', 'Statistics 101']
+course_prices = {'Python Basics': 40, 'Data Analysis': 60, 'SQL Mastery': 50, 'Excel Pro': 30, 'Statistics 101': 45}
+
+purchases = pd.DataFrame({
+    'purchase_date': np.random.choice(dates, n_purchases),
+    'course': np.random.choice(courses, n_purchases),
+    'student_id': np.random.randint(1, 121, n_purchases)
+})
+purchases['price'] = purchases['course'].map(course_prices)
