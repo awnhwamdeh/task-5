@@ -1,0 +1,255 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ==================================
+# Data Generation
+# ==================================
+
+np.random.seed(7)
+
+dates = pd.date_range(
+    start='2021-01-01',
+    end='2023-12-31',
+    freq='D'
+)
+
+day_of_year = dates.dayofyear
+n_days = len(dates)
+
+seasonal_pattern = (
+    15 +
+    12 * np.sin(
+        2 * np.pi * (day_of_year - 80) / 365
+    )
+)
+
+warming_trend = np.linspace(
+    0,
+    1.5,
+    n_days
+)
+
+noise = np.random.normal(
+    0,
+    2,
+    n_days
+)
+
+temperature = (
+    seasonal_pattern
+    + warming_trend
+    + noise
+)
+
+weather = pd.DataFrame({
+    "date": dates,
+    "temperature": temperature
+})
+
+weather["date"] = pd.to_datetime(weather["date"])
+weather["year"] = weather["date"].dt.year
+weather["month"] = weather["date"].dt.month_name()
+
+# ==================================
+# Page Config
+# ==================================
+
+st.set_page_config(
+    page_title="Weather Analytics Dashboard",
+    layout="wide"
+)
+
+st.title("🌡️ Weather Analytics Dashboard")
+
+# ==================================
+# Sidebar Filters
+# ==================================
+
+st.sidebar.header("Filters")
+
+selected_years = st.sidebar.multiselect(
+    "Select Year",
+    options=sorted(weather["year"].unique()),
+    default=sorted(weather["year"].unique())
+)
+
+date_range = st.sidebar.date_input(
+    "Date Range",
+    value=(
+        weather["date"].min(),
+        weather["date"].max()
+    )
+)
+
+filtered = weather[
+    weather["year"].isin(selected_years)
+]
+
+if len(date_range) == 2:
+    filtered = filtered[
+        (filtered["date"] >= pd.Timestamp(date_range[0]))
+        &
+        (filtered["date"] <= pd.Timestamp(date_range[1]))
+    ]
+
+# ==================================
+# KPI Section
+# ==================================
+
+avg_temp = filtered["temperature"].mean()
+max_temp = filtered["temperature"].max()
+min_temp = filtered["temperature"].min()
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric(
+    "Average Temperature",
+    f"{avg_temp:.1f} °C"
+)
+
+col2.metric(
+    "Maximum Temperature",
+    f"{max_temp:.1f} °C"
+)
+
+col3.metric(
+    "Minimum Temperature",
+    f"{min_temp:.1f} °C"
+)
+
+# ==================================
+# Chart 1
+# Trend Over Time
+# ==================================
+
+st.subheader(
+    "Temperature Trend Across Time"
+)
+
+fig1 = px.line(
+    filtered,
+    x="date",
+    y="temperature",
+    title="Daily Temperature Evolution"
+)
+
+st.plotly_chart(
+    fig1,
+    use_container_width=True
+)
+
+# ==================================
+# Chart 2
+# Monthly Seasonality
+# ==================================
+
+st.subheader(
+    "Seasonality by Month"
+)
+
+month_order = [
+    "January","February","March",
+    "April","May","June",
+    "July","August","September",
+    "October","November","December"
+]
+
+monthly_avg = (
+    filtered.groupby("month")
+    ["temperature"]
+    .mean()
+    .reindex(month_order)
+)
+
+fig2 = px.bar(
+    x=monthly_avg.index,
+    y=monthly_avg.values,
+    labels={
+        "x":"Month",
+        "y":"Average Temperature"
+    },
+    title="Which Months Are Warmer?"
+)
+
+st.plotly_chart(
+    fig2,
+    use_container_width=True
+)
+
+# ==================================
+# Chart 3
+# Year Comparison
+# ==================================
+
+st.subheader(
+    "Temperature Distribution by Year"
+)
+
+fig3, ax = plt.subplots(
+    figsize=(10,5)
+)
+
+sns.boxplot(
+    data=filtered,
+    x="year",
+    y="temperature",
+    ax=ax
+)
+
+ax.set_title(
+    "Yearly Temperature Distribution"
+)
+
+st.pyplot(fig3)
+
+# ==================================
+# Insights Section
+# ==================================
+
+st.header("📌 Key Insights")
+
+warmest_month = monthly_avg.idxmax()
+coldest_month = monthly_avg.idxmin()
+
+yearly_avg = (
+    filtered.groupby("year")
+    ["temperature"]
+    .mean()
+)
+
+trend_msg = ""
+
+if len(yearly_avg) > 1:
+    if yearly_avg.iloc[-1] > yearly_avg.iloc[0]:
+        trend_msg = "Average temperature is gradually increasing across years."
+    else:
+        trend_msg = "No clear long-term warming trend appears."
+
+st.success(
+    f"""
+    1. The warmest month on average is **{warmest_month}**.
+
+    2. The coldest month on average is **{coldest_month}**.
+
+    3. {trend_msg}
+    """
+)
+
+# ==================================
+# Executive Summary
+# ==================================
+
+st.header("📄 Executive Summary")
+
+st.markdown("""
+### Business Question
+
+How do temperatures evolve across seasons and years,
+and is there evidence of a gradual warming trend that
+could impact planning and resource allocation?
+
+### Main
